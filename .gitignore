@@ -1,0 +1,21 @@
+# Station map PDFs are large and re-downloadable (see docs/data-sources.md)
+data/station_maps/**/*.pdf
+*.part
+
+# Dependencies and build output
+node_modules/
+dist/
+.astro/
+.vercel/
+
+# Secrets: .env, .env.local (vercel env pull), etc. Keep the example.
+.env*
+!.env.example
+
+# Tooling and OS noise
+__pycache__/
+npm-debug.log*
+.DS_Store
+
+# Station surveys from volunteers (npm run export-submissions, local dev)
+data/submissions*.json*

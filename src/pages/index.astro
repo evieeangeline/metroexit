@@ -1,0 +1,204 @@
+---
+import '../styles/global.css';
+import Logo from '../components/Logo.astro';
+import MetroMap from '../components/MetroMap.astro';
+import StationCard from '../components/StationCard.astro';
+import LineStrip from '../components/LineStrip.astro';
+import { LIVE_TRAINS } from '../config';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>metro exit strategy</title>
+    <meta name="description" content="Pick the right Sydney Metro door and step off closest to your exit." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="page">
+      <header class="head">
+        <Logo />
+        <p class="tagline">
+          Pick the right Sydney Metro door and step off <em>closest to your exit.</em>
+        </p>
+      </header>
+
+      <main class="map-area">
+        <MetroMap />
+        <LineStrip />
+      </main>
+
+      <div class="card-area">
+        <StationCard />
+      </div>
+
+      <footer class="foot">
+        <ul class="legend">
+          <li>
+            <span class="key key-nw"></span>North West
+          </li>
+          <li>
+            <span class="key key-city"></span>City &amp; Southwest
+          </li>
+          <li>
+            <span class="key key-bankstown"></span>Bankstown line, coming soon
+          </li>
+          <li>
+            <span class="key key-rail"></span>Sydney Trains
+          </li>
+        </ul>
+        <p class="note">
+          {LIVE_TRAINS ? 'Live positions and station data' : 'Station data'} ©{' '}
+          <a href="https://opendata.transport.nsw.gov.au">Transport for NSW</a>, used under{' '}
+          <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
+          {LIVE_TRAINS && ' Positions are approximate.'}
+          <br />
+          An independent project, not affiliated with Transport for NSW.
+          <br />
+          On a metro platform? <a href="/contribute">Help map the doors</a>.
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>
+
+<style>
+  .page {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas: 'head' 'map' 'card' 'foot';
+  }
+  .head {
+    grid-area: head;
+    padding: 24px 16px 8px;
+  }
+  .map-area {
+    grid-area: map;
+    min-width: 0;
+  }
+  .card-area {
+    grid-area: card;
+    padding: 12px 16px 0;
+    display: flex;
+  }
+  @media (max-width: 720px) {
+    .card-area {
+      padding: 0;
+    }
+    .head {
+      padding-bottom: 0;
+    }
+    .map-area {
+      padding-top: 36px;
+    }
+  }
+  .foot {
+    grid-area: foot;
+    padding: 24px 16px 28px;
+  }
+
+  .tagline {
+    margin: 18px 0 0;
+    max-width: 22em;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+  .tagline em {
+    font-style: normal;
+    white-space: nowrap;
+    font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(transparent 60%, var(--accent) 60%);
+  }
+
+  .legend {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .legend li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .key {
+    width: 28px;
+    height: 5px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .key-nw {
+    background: var(--line-nw);
+  }
+  .key-city {
+    background: var(--line-city);
+  }
+  .key-rail {
+    background: var(--rail);
+    height: 3px;
+  }
+  .key-bankstown {
+    height: 5px;
+    background: radial-gradient(circle, var(--line-city) 2.3px, transparent 2.6px) 0 50% / 7px 5px repeat-x;
+  }
+  .note {
+    margin: 20px 0 0;
+    max-width: 34em;
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+  .note a {
+    white-space: nowrap;
+    color: inherit;
+    text-decoration-color: var(--rail);
+    text-underline-offset: 2px;
+  }
+  .note a:hover {
+    color: var(--ink);
+    text-decoration-color: currentColor;
+  }
+
+  /* Desktop: text panel down the left, map fills the rest edge to edge. */
+  @media (min-width: 900px) {
+    .page {
+      height: 100svh;
+      min-height: 640px;
+      grid-template-columns: minmax(360px, 34%) 1fr;
+      grid-template-rows: auto 1fr auto;
+      grid-template-areas:
+        'head map'
+        'card map'
+        'foot map';
+    }
+    .head {
+      padding: clamp(32px, 6vh, 64px) 0 0 clamp(32px, 4.5vw, 72px);
+    }
+    .card-area {
+      padding: 0 0 0 clamp(32px, 4.5vw, 72px);
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .foot {
+      padding: 0 0 clamp(28px, 5vh, 48px) clamp(32px, 4.5vw, 72px);
+    }
+    .map-area {
+      padding: 24px clamp(16px, 3vw, 48px) 24px 0;
+    }
+  }
+</style>

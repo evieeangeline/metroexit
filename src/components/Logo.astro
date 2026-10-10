@@ -1,0 +1,42 @@
+---
+const rows = ['metro exit', 'strategy.'];
+const offsets = rows.map((_, r) => rows.slice(0, r).join('').length);
+---
+
+<h1 class="logo" aria-label={rows.join(' ')}>
+  {rows.map((row, r) => (
+    <span class="row" aria-hidden="true">
+      {[...row].map((c, i) => (
+        <span class:list={{ gap: c === ' ' }} style={`--d:${offsets[r] + i}`}>
+          {c}
+        </span>
+      ))}
+    </span>
+  ))}
+</h1>
+
+<style>
+  .logo {
+    margin: 0;
+    display: inline-flex;
+    flex-direction: column;
+    font-weight: 800;
+    font-size: clamp(52px, 5.6vw, 92px);
+    line-height: 0.94;
+    letter-spacing: -0.045em;
+    color: var(--line-nw);
+  }
+  .row {
+    white-space: pre;
+  }
+  .row .gap {
+    width: 0.24em;
+  }
+  .row span {
+    display: inline-block;
+    transition: transform 0.3s cubic-bezier(0.3, 1.8, 0.5, 1);
+  }
+  .logo:hover .row span {
+    transform: translateY(calc(sin(var(--d) * 1.3) * 0.07em)) rotate(calc(cos(var(--d) * 2.1) * 6deg));
+  }
+</style>

@@ -1,0 +1,760 @@
+---
+import '../styles/global.css';
+import { lineInfo } from '../data/metro';
+import { CONNECTION_TYPES, DIRECTIONS, surveyStations } from '../lib/survey';
+
+const lines = [...new Set(surveyStations.map((s) => s.line))].map((line) => ({
+  name: lineInfo[line].name,
+  stations: surveyStations.filter((s) => s.line === line),
+}));
+const ends = [
+  { key: 'lowest', label: 'Lowest door', example: 'e.g. 4' },
+  { key: 'highest', label: 'Highest door', example: 'e.g. 21' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Map a station · metro exit strategy</title>
+    <meta name="description" content="On a Sydney Metro platform? Tell us which platform doors are at each end." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <main class="page">
+      <a class="home" href="/">
+        ← metro exit strategy.
+      </a>
+      <h1>Help map a station</h1>
+      <div class="lede">
+        <p>Standing on a metro platform? Every platform door has a number next to it.</p>
+        <p>Tell us which door is closest to each escalator, staircase and lift, and where they take you.</p>
+        <p>It takes about three minutes, and kills some time waiting for the metro :)</p>
+        <p class="signoff">thanks &lt;3 from evie</p>
+      </div>
+
+      <form id="survey" novalidate>
+        <fieldset class="step">
+          <legend>
+            <span class="num">1</span>Where are you?
+          </legend>
+          <label class="field">
+            <span>Station</span>
+            <select name="station" required>
+              <option value="">Pick a station…</option>
+              {lines.map((l) => (
+                <optgroup label={l.name}>
+                  {l.stations.map((s) => (
+                    <option value={s.id}>{s.name}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </label>
+          <div class="field">
+            <span>Platforms with trains heading towards</span>
+            <div class="pills">
+              {Object.entries(DIRECTIONS).map(([v, label]) => (
+                <label>
+                  <input type="checkbox" name="towards" value={v} />
+                  <b>{label}</b>
+                </label>
+              ))}
+            </div>
+            <small>
+              Tick both if you can see both platforms. At Tallawong or Sydenham, pick the way arriving trains were
+              going.
+            </small>
+          </div>
+        </fieldset>
+
+        <fieldset class="step">
+          <legend>
+            <span class="num">2</span>Door numbers
+          </legend>
+          <p class="hint">
+            Fill out what you can. Everything here is optional, so if you can only get to one end of the platform, just
+            fill in that door.
+          </p>
+          <p class="pick-first">Tick a platform above first.</p>
+          {Object.entries(DIRECTIONS).map(([towards, label]) => (
+            <div class="platform" data-towards={towards} hidden>
+              <h3>Towards {label}</h3>
+              {ends.map((e) => (
+                <div class="end" data-end={e.key}>
+                  <label class="field door-field">
+                    <span>{e.label}</span>
+                    <input
+                      type="number"
+                      inputmode="numeric"
+                      min="1"
+                      max="30"
+                      placeholder={e.example}
+                      data-door={`${towards}.${e.key}`}
+                    />
+                  </label>
+                  <div class="field">
+                    <span>This door is at the</span>
+                    <div class="pills">
+                      {['back', 'front'].map((v) => (
+                        <label>
+                          <input type="radio" name={`${towards}.${e.key}.end`} value={v} />
+                          <b>{v === 'back' ? 'Back' : 'Front'}</b>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <small class="front-note">The front is the end the train is heading towards.</small>
+            </div>
+          ))}
+        </fieldset>
+
+        <fieldset class="step">
+          <legend>
+            <span class="num">3</span>Ways off the platform <em>(optional)</em>
+          </legend>
+          <p class="hint">Are you next to an escalator, staircase or lift? Let us know which door is closest to it.</p>
+          <ol class="list" id="connections"></ol>
+          <button type="button" class="add" data-add="connection">
+            + Add a way off
+          </button>
+        </fieldset>
+
+        <fieldset class="step">
+          <legend>
+            <span class="num">4</span>Anything else?
+          </legend>
+          <label class="field">
+            <span>
+              Notes <em>(optional)</em>
+            </span>
+            <textarea
+              name="notes"
+              rows="3"
+              maxlength="2000"
+              placeholder="e.g. door 4 is right next to the lift"
+            ></textarea>
+          </label>
+          <label class="field">
+            <span>
+              Your name <em>(optional, so we can thank you)</em>
+            </span>
+            <input name="name" maxlength="80" autocomplete="given-name" />
+          </label>
+          <!-- Hidden from people, tempting to bots. -->
+          <label class="trap" aria-hidden="true">
+            Website <input name="website" tabindex="-1" autocomplete="off" />
+          </label>
+        </fieldset>
+
+        <p class="status" role="status" aria-live="polite"></p>
+        <button type="submit" class="send">
+          Send
+        </button>
+        <p class="saved-note">Your answers are saved on this phone until you send them.</p>
+      </form>
+
+      <section class="done" hidden>
+        <h2>Thank you!</h2>
+        <p>That’s saved. Every platform you log puts someone closer to the right door.</p>
+        <div class="done-actions">
+          <button type="button" class="send" data-next>
+            Log another station
+          </button>
+          <a class="add" href="/">
+            Back to the map
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <template id="connection-tpl">
+      <li class="item">
+        <div class="item-head">
+          <b class="item-title"></b>
+          <button type="button" class="remove" aria-label="Remove">
+            ×
+          </button>
+        </div>
+        <label class="field which-platform">
+          <span>Platform</span>
+          <select data-k="towards">
+            <option value="both">Both platforms</option>
+            {Object.entries(DIRECTIONS).map(([v, label]) => (
+              <option value={v}>Towards {label}</option>
+            ))}
+          </select>
+        </label>
+        <label class="field">
+          <span>What is it?</span>
+          <select data-k="type">
+            {Object.entries(CONNECTION_TYPES).map(([v, label]) => (
+              <option value={v}>{label}</option>
+            ))}
+          </select>
+        </label>
+        <label class="field door-field">
+          <span>Nearest door</span>
+          <input data-k="door" type="number" inputmode="numeric" min="1" max="30" placeholder="e.g. 12" />
+        </label>
+        <label class="field direction">
+          <span>Escalators go</span>
+          <select data-k="direction">
+            <option value="both">Up and down</option>
+            <option value="up">Up only</option>
+            <option value="down">Down only</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Where does it take you?</span>
+          <input data-k="leadsTo" maxlength="200" placeholder="e.g. main concourse, Hunter St exit" />
+        </label>
+      </li>
+    </template>
+  </body>
+</html>
+
+<script>
+  import { CONNECTION_TYPES, DIRECTIONS, type Direction } from '../lib/survey';
+
+  const DRAFT_KEY = 'metroexit:survey-draft-v2';
+  const directions = Object.keys(DIRECTIONS) as Direction[];
+  const endKeys = ['lowest', 'highest'] as const;
+  type Row = Record<string, string>;
+  type EndInput = { door: string; end: string };
+  type PlatformInput = Record<(typeof endKeys)[number], EndInput>;
+
+  const form = document.querySelector<HTMLFormElement>('#survey')!;
+  const done = document.querySelector<HTMLElement>('.done')!;
+  const status = form.querySelector<HTMLElement>('.status')!;
+  const sendBtn = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+  const connectionList = document.querySelector<HTMLOListElement>('#connections')!;
+  const connectionTpl = document.querySelector<HTMLTemplateElement>('#connection-tpl')!;
+  const field = (name: string) => form.elements.namedItem(name) as HTMLInputElement;
+  const doorInput = (towards: string, end: string) =>
+    form.querySelector<HTMLInputElement>(`[data-door="${towards}.${end}"]`)!;
+  const endRadio = (towards: string, end: string, value: string) =>
+    form.querySelector<HTMLInputElement>(`[name="${towards}.${end}.end"][value="${value}"]`);
+  const ticked = () =>
+    [...form.querySelectorAll<HTMLInputElement>('[name=towards]:checked')].map((el) => el.value as Direction);
+
+  /** Keeps the page in step with the answers: platform blocks, item titles, which fields show. */
+  function refresh() {
+    const on = ticked();
+    for (const block of form.querySelectorAll<HTMLElement>('.platform')) {
+      block.hidden = !on.includes(block.dataset.towards as Direction);
+    }
+    form.querySelector<HTMLElement>('.pick-first')!.hidden = on.length > 0;
+
+    ([...connectionList.children] as HTMLElement[]).forEach((li, i) => {
+      const type = (li.querySelector<HTMLSelectElement>('[data-k=type]')!.value ||
+        'escalators') as keyof typeof CONNECTION_TYPES;
+      li.querySelector('.item-title')!.textContent = `#${i + 1} ${CONNECTION_TYPES[type]}`;
+      li.querySelector<HTMLElement>('.direction')!.hidden = type === 'lift';
+      li.querySelector<HTMLElement>('.which-platform')!.hidden = on.length < 2;
+    });
+  }
+
+  function addConnection(data: Row = {}) {
+    const li = connectionTpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
+    for (const el of li.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[data-k]')) {
+      const v = data[el.dataset.k!];
+      if (v !== undefined) el.value = v;
+    }
+    li.querySelector('.remove')!.addEventListener('click', () => {
+      li.remove();
+      refresh();
+      saveDraft();
+    });
+    connectionList.append(li);
+    refresh();
+    return li;
+  }
+
+  const readRows = (list: HTMLElement): Row[] =>
+    [...list.children].map((li) =>
+      Object.fromEntries([...li.querySelectorAll<HTMLInputElement>('[data-k]')].map((el) => [el.dataset.k!, el.value])),
+    );
+
+  function readForm() {
+    const doors = Object.fromEntries(
+      directions.map((t) => [
+        t,
+        Object.fromEntries(
+          endKeys.map((e) => [
+            e,
+            {
+              door: doorInput(t, e).value,
+              end: form.querySelector<HTMLInputElement>(`[name="${t}.${e}.end"]:checked`)?.value ?? '',
+            },
+          ]),
+        ) as PlatformInput,
+      ]),
+    ) as Record<Direction, PlatformInput>;
+    return {
+      station: field('station').value,
+      towards: ticked(),
+      doors,
+      connections: readRows(connectionList),
+      notes: field('notes').value,
+      name: field('name').value,
+    };
+  }
+  type Draft = ReturnType<typeof readForm>;
+
+  function fillForm(d: Partial<Draft>) {
+    field('station').value = d.station ?? '';
+    field('notes').value = d.notes ?? '';
+    field('name').value = d.name ?? '';
+    for (const el of form.querySelectorAll<HTMLInputElement>('[name=towards]')) {
+      el.checked = !!d.towards?.includes(el.value as Direction);
+    }
+    for (const t of directions) {
+      for (const e of endKeys) {
+        const saved = d.doors?.[t]?.[e];
+        doorInput(t, e).value = saved?.door ?? '';
+        for (const v of ['front', 'back']) endRadio(t, e, v)!.checked = saved?.end === v;
+      }
+    }
+    connectionList.replaceChildren();
+    d.connections?.forEach((r) => addConnection(r));
+    refresh();
+  }
+
+  // Storage can be unavailable (private browsing, blocked site data); the form still works.
+  function saveDraft() {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(readForm()));
+    } catch {
+      /* not saved */
+    }
+  }
+  function loadDraft(): Partial<Draft> | null {
+    try {
+      return JSON.parse(localStorage.getItem(DRAFT_KEY) ?? 'null');
+    } catch {
+      return null;
+    }
+  }
+  function clearDraft() {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* nothing to clear */
+    }
+  }
+
+  function payload(d: Draft) {
+    const num = (v: string) => (v === '' || v === undefined ? undefined : Number(v));
+    const platforms = d.towards.map((towards) => ({
+      towards,
+      ...Object.fromEntries(
+        endKeys.map((e) => [e, { door: num(d.doors[towards][e].door), end: d.doors[towards][e].end || undefined }]),
+      ),
+    }));
+    return {
+      station: d.station,
+      platforms,
+      // Rows left without a door are half-filled extras.
+      connections: d.connections.filter((c) => c.door).map((c) => ({ ...c, door: num(c.door) })),
+      notes: d.notes,
+      name: d.name,
+      website: field('website').value,
+    };
+  }
+
+  function problem(d: Draft) {
+    if (!d.station) return 'Pick your station.';
+    if (!d.towards.length) return 'Tick which way the trains are heading.';
+    const anyDoor = d.towards.some((t) => endKeys.some((e) => d.doors[t][e].door)) || d.connections.some((c) => c.door);
+    if (!anyDoor) return 'Add at least one door number, whichever you can see.';
+    return '';
+  }
+
+  form.addEventListener('input', () => {
+    refresh();
+    saveDraft();
+  });
+  // An end door at the back means the other end door is at the front, and the other way round.
+  form.addEventListener('change', (e) => {
+    const el = e.target as HTMLInputElement;
+    const m = el.name.match(/^(\w+)\.(lowest|highest)\.end$/);
+    if (m) {
+      const other = endRadio(m[1], m[2] === 'lowest' ? 'highest' : 'lowest', el.value === 'back' ? 'front' : 'back');
+      if (other) other.checked = true;
+    }
+    saveDraft();
+  });
+  form.querySelector('[data-add]')!.addEventListener('click', () => {
+    const li = addConnection();
+    li.querySelector<HTMLElement>('select:not([hidden] *), input')?.focus();
+    saveDraft();
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const d = readForm();
+    const msg = problem(d);
+    status.className = 'status';
+    if (msg) {
+      status.textContent = msg;
+      status.classList.add('error');
+      return;
+    }
+    sendBtn.disabled = true;
+    status.textContent = 'Sending…';
+    try {
+      const res = await fetch('/api/submissions', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload(d)),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || 'Something went wrong.');
+      status.textContent = '';
+      form.hidden = true;
+      done.hidden = false;
+      done.dataset.name = d.name;
+      clearDraft();
+      window.scrollTo({ top: 0 });
+    } catch (err) {
+      status.classList.add('error');
+      status.textContent =
+        err instanceof TypeError
+          ? 'No signal? Your answers are saved on this phone. Tap Send again once you’re back online.'
+          : (err as Error).message;
+    } finally {
+      sendBtn.disabled = false;
+    }
+  });
+
+  done.querySelector('[data-next]')!.addEventListener('click', () => {
+    fillForm({ name: done.dataset.name });
+    done.hidden = true;
+    form.hidden = false;
+    status.textContent = '';
+    window.scrollTo({ top: 0 });
+  });
+
+  // Start from the saved draft, or a station picked on the map (?station=).
+  const draft = loadDraft();
+  const fromUrl = new URLSearchParams(location.search).get('station') ?? '';
+  const known = [...field('station').querySelectorAll('option')].some((o) => o.value === fromUrl && fromUrl);
+  if (draft && (!known || draft.station === fromUrl)) {
+    fillForm(draft);
+    status.textContent = 'Picked up where you left off.';
+  } else {
+    fillForm({ station: known ? fromUrl : '' });
+  }
+</script>
+
+<style>
+  .page {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 24px 16px 64px;
+  }
+  .home {
+    font-weight: 800;
+    color: var(--line-nw);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  h1 {
+    margin: 20px 0 8px;
+    font-size: clamp(34px, 7vw, 48px);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1;
+  }
+  .lede {
+    margin: 0 0 28px;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 1.45;
+  }
+  .lede p {
+    margin: 0 0 12px;
+  }
+  .lede .signoff {
+    margin: 18px 0 0;
+    font-weight: 700;
+    color: var(--line-nw);
+  }
+
+  .step {
+    margin: 0 0 20px;
+    padding: 16px;
+    border: 2px solid var(--ink);
+    border-radius: 16px;
+    min-width: 0;
+  }
+  legend {
+    padding: 0 6px;
+    margin-left: -6px;
+    font-weight: 800;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  legend em,
+  .field em {
+    font-style: normal;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .num {
+    display: inline-grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent);
+    font-size: 14px;
+  }
+  .hint,
+  .pick-first {
+    margin: 4px 0 12px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .pick-first {
+    font-weight: 600;
+  }
+
+  .platform {
+    padding: 12px 14px 14px;
+    border-radius: 12px;
+    background: #f3f7f7;
+  }
+  .platform + .platform {
+    margin-top: 12px;
+  }
+  .platform h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+  }
+  .end {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0 14px;
+  }
+  .door-field {
+    flex: 0 0 112px;
+  }
+  .front-note {
+    display: block;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .field {
+    display: grid;
+    gap: 6px;
+    margin-top: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 0;
+  }
+  .field small {
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .row .field {
+    flex: 1 1 140px;
+  }
+  .row .field.narrow {
+    flex: 0 1 160px;
+  }
+  input,
+  select,
+  textarea {
+    width: 100%;
+    font: 500 16px/1.3 var(--font);
+    color: var(--ink);
+    padding: 10px 12px;
+    border: 1.8px solid #b9c4c6;
+    border-radius: 10px;
+    background: #fff;
+  }
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--ink);
+    outline: none;
+  }
+  textarea {
+    resize: vertical;
+  }
+
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .pills label {
+    position: relative;
+  }
+  .pills input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+  }
+  .pills b {
+    display: block;
+    padding: 9px 16px;
+    border: 1.8px solid #b9c4c6;
+    border-radius: 99px;
+    background: #fff;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .pills input:checked + b {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .pills input:focus-visible + b {
+    outline: 2.5px solid var(--ink);
+    outline-offset: 3px;
+  }
+
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+  .list:empty {
+    display: none;
+  }
+  .item {
+    padding: 12px 14px 14px;
+    border-radius: 12px;
+    background: #f3f7f7;
+  }
+  .item .field:first-of-type {
+    margin-top: 6px;
+  }
+  .item-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .remove {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    font: 600 22px/1 var(--font);
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .remove:hover {
+    background: #e3eaeb;
+    color: var(--ink);
+  }
+  [hidden] {
+    display: none !important;
+  }
+
+  .add,
+  .send {
+    font: 700 16px/1 var(--font);
+    border-radius: 99px;
+    cursor: pointer;
+    padding: 12px 18px;
+  }
+  .add {
+    margin-top: 12px;
+    background: transparent;
+    border: 1.8px dashed var(--muted);
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .send {
+    border: 2px solid var(--ink);
+    background: var(--accent);
+    color: var(--ink);
+    box-shadow: 4px 4px 0 var(--ink);
+    padding: 14px 32px;
+  }
+  .send:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .send:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  .status {
+    min-height: 1.4em;
+    margin: 0 0 12px;
+    font-weight: 600;
+    color: var(--line-nw);
+  }
+  .status.error {
+    color: #b3261e;
+  }
+  .saved-note {
+    margin: 14px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .done {
+    padding: 20px;
+    border: 2px solid var(--ink);
+    border-radius: 16px;
+    box-shadow: 5px 5px 0 var(--line-city);
+  }
+  .done h2 {
+    margin: 0 0 6px;
+    font-size: 28px;
+    font-weight: 800;
+  }
+  .done p {
+    margin: 0 0 18px;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+  .done-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+  .done-actions .add {
+    margin: 0;
+  }
+</style>

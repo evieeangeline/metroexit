@@ -1,0 +1,236 @@
+---
+// Phone-only line diagram: big, tappable stations, one line at a time.
+// Picking is handled by the script in MetroMap.astro (via .strip-stn).
+import { stations, statusInfo, type Line } from '../data/metro';
+
+const lines: { key: Line; short: string }[] = [
+  { key: 'northwest', short: 'North West' },
+  { key: 'city', short: 'City' },
+  { key: 'bankstown', short: 'Bankstown' },
+];
+---
+
+<section class="strip" aria-label="Stations by line">
+  <h2 class="strip-title">Where are you getting off?</h2>
+  <div class="tabs" role="tablist">
+    {lines.map((l, i) => (
+      <button
+        class={`tab tab-${l.key}`}
+        role="tab"
+        type="button"
+        id={`tab-${l.key}`}
+        aria-controls={`panel-${l.key}`}
+        aria-selected={i === 0 ? 'true' : 'false'}
+        data-line={l.key}
+      >
+        <span class="tab-dot" aria-hidden="true"></span>
+        {l.short}
+      </button>
+    ))}
+  </div>
+
+  {lines.map((l, i) => (
+    <ol
+      class={`stops stops-${l.key}`}
+      role="tabpanel"
+      id={`panel-${l.key}`}
+      aria-labelledby={`tab-${l.key}`}
+      hidden={i !== 0}
+    >
+      {stations
+        .filter((s) => s.line === l.key)
+        .map((s) => (
+          <li>
+            <button
+              class:list={['strip-stn', { interchange: s.interchange }]}
+              type="button"
+              data-id={s.id}
+              aria-pressed="false"
+            >
+              <span class="rail" aria-hidden="true">
+                <span class="node"></span>
+              </span>
+              <span class="stn-name">{s.name}</span>
+              <span class={`stn-status status-${s.status}`}>{statusInfo[s.status].chip}</span>
+            </button>
+          </li>
+        ))}
+    </ol>
+  ))}
+</section>
+
+<style>
+  .strip {
+    display: none;
+  }
+
+  @media (max-width: 720px) {
+    .strip {
+      display: block;
+      padding: 8px 16px 0;
+    }
+    /* leave room to scroll the last stops above the open card sheet */
+    :global(body:has(.card.open)) .strip {
+      padding-bottom: 240px;
+    }
+  }
+
+  .strip-title {
+    margin: 0 0 12px;
+    font-size: 20px;
+    font-weight: 800;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .tab {
+    flex: 1 1 auto;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 2px solid var(--ink);
+    border-radius: 99px;
+    background: var(--bg);
+    font: 700 13.5px var(--font);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .tab[aria-selected='true'] {
+    background: var(--ink);
+    color: #fff;
+  }
+  .tab-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--line-nw);
+  }
+  .tab-city .tab-dot,
+  .tab-bankstown .tab-dot {
+    background: var(--line-city);
+  }
+
+  .stops {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    --c: var(--line-nw);
+  }
+  .stops-city,
+  .stops-bankstown {
+    --c: var(--line-city);
+  }
+
+  .strip-stn {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 0 8px 0 0;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    font: inherit;
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+  }
+  .strip-stn.active {
+    background: #fff8dc;
+  }
+
+  .rail {
+    position: relative;
+    align-self: stretch;
+    display: grid;
+    place-items: center;
+  }
+  .rail::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 8px;
+    transform: translateX(-50%);
+    background: var(--c);
+  }
+  .stops-bankstown .rail::before {
+    background: radial-gradient(circle, var(--c) 3.6px, transparent 4px) 50% 0 / 8px 12px repeat-y;
+  }
+  li:first-child .rail::before {
+    top: 50%;
+  }
+  li:last-child .rail::before {
+    bottom: 50%;
+  }
+
+  .node {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    border: 4px solid var(--c);
+    transition:
+      transform 0.2s cubic-bezier(0.3, 1.8, 0.5, 1),
+      background 0.15s;
+  }
+  .interchange .node {
+    border-color: var(--ink);
+  }
+  .strip-stn.active .node {
+    background: var(--accent);
+    border-color: var(--ink);
+    transform: scale(1.25);
+  }
+
+  .stn-name {
+    font-size: 17px;
+    font-weight: 700;
+  }
+  .stn-status {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 99px;
+    white-space: nowrap;
+  }
+  .status-ready {
+    background: #e8f4f5;
+    color: var(--line-nw);
+  }
+  .status-mapping {
+    background: #fff4d6;
+    color: #8a5a00;
+  }
+  .status-soon {
+    background: #eef0f1;
+    color: #5d6a6d;
+  }
+</style>
+
+<script>
+  const tabs = [...document.querySelectorAll<HTMLButtonElement>('.strip .tab')];
+
+  function select(line: string) {
+    for (const t of tabs) {
+      const on = t.dataset.line === line;
+      t.setAttribute('aria-selected', String(on));
+      document.getElementById(t.getAttribute('aria-controls')!)!.hidden = !on;
+    }
+  }
+
+  tabs.forEach((t) => t.addEventListener('click', () => select(t.dataset.line!)));
+  // Picking a dot on the overview map jumps to that station's line.
+  document.addEventListener('station-picked', (e) => select((e as CustomEvent<string>).detail));
+</script>

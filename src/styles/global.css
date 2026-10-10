@@ -1,0 +1,38 @@
+:root {
+  --font: 'Outfit', system-ui, sans-serif;
+  --bg: #ffffff;
+  --ink: #1d2b2e;
+  --muted: #7b8a8d;
+  --line-nw: #3b8c92;
+  --line-city: #5cc6cf;
+  --rail: #dde2e3;
+  --grid: #cfe3e5;
+  --accent: #ffd23f;
+  --train: #63b4d3;
+  --train-glass: #1f4f63;
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+:focus-visible {
+  outline: 2.5px solid var(--ink);
+  outline-offset: 3px;
+}
