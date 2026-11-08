@@ -2,15 +2,15 @@
 
 Status as of 9 November 2026: **working, storing to Upstash Redis.** The survey now lives in the station card on the home page; it replaced the separate `/contribute` form on this date.
 
-Platform door numbers aren't published anywhere (see [data-sources.md](data-sources.md#4-platform-door-numbers)), so volunteers map platforms in person. The survey assumes every platform has doors 4 to 21, with door 4 at the Sydenham end.
+Platform door numbers aren't published anywhere (see [data-sources.md](data-sources.md#4-platform-door-numbers)), so volunteers map platforms in person. The survey assumes every platform has doors 4 to 21, with door 4 at the south (Bankstown) end. That's confirmed at Victoria Cross and Gadigal, but not yet on the Bankstown line, whose stations are converted Sydney Trains stations; there the form asks people to say in the notes if the numbers are different.
 
 The form is inside the station card on the home page, so there's nothing to open or navigate to. Pick a station on the map (on a phone, the card slides up), then:
 
-1. Pick the platform: to Tallawong, to Sydenham, or both sides, if the two sides have the same things at the same doors.
+1. Pick the platform: to Tallawong, to Bankstown, or both sides, if the two sides have the same things at the same doors.
 2. Tap a door on the train (six carriages of three doors), then tap what's next to it: escalators, stairs, lift, accessible door, seats or help point. Marked doors show their icons.
 3. Optionally type anything else in one line, and tap Send.
 
-A submission needs a platform and at least one door with something marked. After sending, they can map the other side of the same station in one tap. Bankstown line stations ("coming soon") don't show the survey. On desktop, the form only shows for the station that's been clicked, not one that's just hovered.
+A submission needs a platform and at least one door with something marked. After sending, they can map the other side of the same station in one tap. Stations with "coming soon" status don't show the survey (none right now). On desktop, the form only shows for the station that's been clicked, not one that's just hovered.
 
 ### Submission shape
 
@@ -27,6 +27,8 @@ A submission needs a platform and at least one door with something marked. After
 ```
 
 Submissions from before 9 November 2026 have the first form's shape instead: `platforms` (lowest and highest door, and which end each was at) and `connections` (way off, nearest door, where it leads). `npm run export-submissions` counts both.
+
+Southbound was `"sydenham"` until the Bankstown line opened on 30 October 2026, when trains started running through to Bankstown. It's `"bankstown"` now, and the API and export read `"sydenham"` as `"bankstown"`.
 
 `note` and `name` are always empty from the card; the API still accepts them, and older submissions have them.
 

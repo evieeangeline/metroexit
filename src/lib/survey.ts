@@ -3,17 +3,21 @@
 import { stations } from '../data/metro';
 
 /**
- * Every metro platform has doors 4 to 21, with door 4 at the Sydenham end on
- * both platforms (confirmed at Victoria Cross and Gadigal; see docs/data-sources.md).
+ * Every metro platform has doors 4 to 21, with door 4 at the south (Bankstown)
+ * end on both platforms. Confirmed at Victoria Cross and Gadigal; not yet on the
+ * converted Bankstown line stations. See docs/data-sources.md.
  */
 export const FIRST_DOOR = 4;
 export const LAST_DOOR = 21;
 export const DOOR_NUMBERS = Array.from({ length: LAST_DOOR - FIRST_DOOR + 1 }, (_, i) => FIRST_DOOR + i);
 
-/** Which platform a survey covers. "both" means the two sides match door for door. */
+/**
+ * Which platform a survey covers. "both" means the two sides match door for door.
+ * Before the Bankstown line opened, southbound was "sydenham"; those are read as "bankstown".
+ */
 export const PLATFORMS = {
   tallawong: 'Towards Tallawong',
-  sydenham: 'Towards Sydenham',
+  bankstown: 'Towards Bankstown',
   both: 'Both platforms',
 } as const;
 
@@ -47,7 +51,7 @@ export interface Survey {
 }
 
 /** Stations people can survey: everything open on the metro now. */
-export const surveyStations = stations.filter((s) => s.line !== 'bankstown');
+export const surveyStations = stations.filter((s) => s.status !== 'soon');
 
 const str = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const oneOf = <T extends string>(v: unknown, options: readonly T[]): T | undefined =>
@@ -61,7 +65,7 @@ export function parseSurvey(raw: unknown): Survey | string {
 
   const station = str(r.station, 40);
   if (!surveyStations.some((s) => s.id === station)) return 'Pick a station.';
-  const platform = oneOf(r.platform, Object.keys(PLATFORMS) as Platform[]);
+  const platform = oneOf(r.platform === 'sydenham' ? 'bankstown' : r.platform, Object.keys(PLATFORMS) as Platform[]);
   if (!platform) return 'Pick which platform you’re on.';
 
   const byDoor = new Map<number, DoorReport>();

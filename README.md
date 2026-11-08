@@ -12,7 +12,7 @@ npm run dev      # http://localhost:4321
 npm run build    # outputs to dist/
 ```
 
-- `src/data/metro.ts`: stations, their lines, and how far along the exit data is for each (`ready` / `mapping` / `soon`). When the Bankstown line opens, change its status and the legend label in `src/pages/index.astro`.
+- `src/data/metro.ts`: stations, their lines, and how far along the exit data is for each (`ready` / `mapping` / `soon`). The Bankstown line opened on 30 October 2026; `soon` is unused until the next line is on the way.
 - `src/components/MetroMap.astro`: the interactive map. It projects real lat/lon onto the SVG, so new stations only need coordinates.
 - `src/pages/api/metros.ts`: live metro positions. A Vercel Function fetches the TfNSW GTFS-realtime vehicle positions feed (`/v2/gtfs/vehiclepos/metro`), decodes the protobuf and returns JSON. The map polls it every 10 seconds. Responses are cached at the edge for 10 seconds, so traffic doesn't use up the API quota.
 

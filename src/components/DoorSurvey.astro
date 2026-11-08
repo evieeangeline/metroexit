@@ -5,11 +5,11 @@
 import { DOOR_NUMBERS, FEATURES } from '../lib/survey';
 import { featureIcons } from '../lib/icons';
 
-// Six carriages of three doors, door 4 at the Sydenham end.
+// Six carriages of three doors, door 4 at the south (Bankstown) end.
 const cars = Array.from({ length: DOOR_NUMBERS.length / 3 }, (_, i) => DOOR_NUMBERS.slice(i * 3, i * 3 + 3));
 const sides = [
   { value: 'tallawong', label: 'To Tallawong' },
-  { value: 'sydenham', label: 'To Sydenham' },
+  { value: 'bankstown', label: 'To Bankstown' },
   { value: 'both', label: 'Both sides' },
 ];
 const short: Record<string, string> = { accessible: 'Accessible', help: 'Help point' };
@@ -42,7 +42,7 @@ const short: Record<string, string> = { accessible: 'Accessible', help: 'Help po
       ))}
     </div>
 
-    <p class="train-end">← Sydenham end</p>
+    <p class="train-end">← Bankstown end</p>
     <div class="cars">
       {cars.map((doors) => (
         <div class="car">
@@ -74,6 +74,9 @@ const short: Record<string, string> = { accessible: 'Accessible', help: 'Help po
       </div>
     </div>
 
+    <p class="door-check" hidden>
+      New line! If the doors here aren’t numbered 4 to 21, tell us below.
+    </p>
     <input class="notes" name="notes" maxlength="2000" placeholder="Anything else? (optional)" />
     <!-- Hidden from people, tempting to bots. -->
     <input class="trap" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
@@ -119,6 +122,8 @@ const short: Record<string, string> = { accessible: 'Accessible', help: 'Help po
   const notes = form.querySelector<HTMLInputElement>('.notes')!;
 
   const canMap = (id?: string) => !!id && stations.some((s) => s.id === id && s.status !== 'soon');
+  // Door numbering is only confirmed on the original metro stations, not the converted Bankstown line.
+  const unconfirmed = (id: string) => stations.some((s) => s.id === id && s.line === 'bankstown');
 
   function loadAll(): Record<string, Draft> {
     try {
@@ -139,6 +144,8 @@ const short: Record<string, string> = { accessible: 'Accessible', help: 'Help po
   let station: string | null = null;
   let current: number | null = null;
   const draft = () => (drafts[station!] ??= empty());
+  // Drafts saved before the Bankstown line opened call southbound "sydenham".
+  for (const d of Object.values(drafts)) if ((d.platform as string) === 'sydenham') d.platform = 'bankstown';
 
   function render() {
     const d = draft();
@@ -163,6 +170,7 @@ const short: Record<string, string> = { accessible: 'Accessible', help: 'Help po
         b.setAttribute('aria-pressed', String(features.includes(b.dataset.feature as Feature)));
     }
     if (document.activeElement !== notes) notes.value = d.notes;
+    form.querySelector<HTMLElement>('.door-check')!.hidden = !unconfirmed(station!);
   }
 
   /** Shows the form when the station on the card is the one picked, and it's open. */
@@ -257,7 +265,7 @@ const short: Record<string, string> = { accessible: 'Accessible', help: 'Help po
   for (const b of done.querySelectorAll<HTMLButtonElement>('[data-next]')) {
     b.addEventListener('click', () => {
       const last = done.dataset.platform;
-      if (b.dataset.next === 'other') draft().platform = last === 'tallawong' ? 'sydenham' : 'tallawong';
+      if (b.dataset.next === 'other') draft().platform = last === 'tallawong' ? 'bankstown' : 'tallawong';
       saveAll();
       done.hidden = true;
       form.hidden = false;
@@ -437,6 +445,16 @@ const short: Record<string, string> = { accessible: 'Accessible', help: 'Help po
     color: #fff;
   }
 
+  .door-check {
+    margin-top: 10px !important;
+    padding: 7px 10px;
+    border-radius: 9px;
+    background: #fff4d6;
+    color: #6b4500;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
   .notes {
     width: 100%;
     margin-top: 10px;

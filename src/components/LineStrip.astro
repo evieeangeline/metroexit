@@ -112,9 +112,11 @@ const lines: { key: Line; short: string }[] = [
     border-radius: 50%;
     background: var(--line-nw);
   }
-  .tab-city .tab-dot,
-  .tab-bankstown .tab-dot {
+  .tab-city .tab-dot {
     background: var(--line-city);
+  }
+  .tab-bankstown .tab-dot {
+    background: var(--line-bankstown);
   }
 
   .stops {
@@ -123,9 +125,11 @@ const lines: { key: Line; short: string }[] = [
     padding: 0;
     --c: var(--line-nw);
   }
-  .stops-city,
-  .stops-bankstown {
+  .stops-city {
     --c: var(--line-city);
+  }
+  .stops-bankstown {
+    --c: var(--line-bankstown);
   }
 
   .strip-stn {
@@ -163,9 +167,6 @@ const lines: { key: Line; short: string }[] = [
     width: 8px;
     transform: translateX(-50%);
     background: var(--c);
-  }
-  .stops-bankstown .rail::before {
-    background: radial-gradient(circle, var(--c) 3.6px, transparent 4px) 50% 0 / 8px 12px repeat-y;
   }
   li:first-child .rail::before {
     top: 50%;
@@ -205,10 +206,8 @@ const lines: { key: Line; short: string }[] = [
     border-radius: 99px;
     white-space: nowrap;
   }
-  .status-ready {
-    background: #e8f4f5;
-    color: var(--line-nw);
-  }
+  /* Both say "help map me!" (see statusInfo), so they look the same. */
+  .status-ready,
   .status-mapping {
     background: #fff4d6;
     color: #8a5a00;

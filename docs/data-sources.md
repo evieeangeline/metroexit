@@ -4,7 +4,7 @@ Status as of 8 October 2026.
 
 The goal of metroexit is to tell you which metro door to board at, so you get off next to the escalator, stairs or exit you need. To do that, we need to know where each exit sits along each platform. This page records where that information can come from and how complete it is so far.
 
-**Summary:** the North West section (Tallawong to Chatswood) has both good station maps and structured data. The City section (Crows Nest to Sydenham) and the Bankstown line have neither from public sources yet.
+**Summary:** the North West section (Tallawong to Chatswood) has both good station maps and structured data. The City section (Crows Nest to Sydenham) and the Bankstown line (Marrickville to Bankstown, metro since 30 October 2026) have neither from public sources yet.
 
 ## Coverage by station
 
@@ -31,7 +31,7 @@ The goal of metroexit is to tell you which metro door to board at, so you get of
 | Central              | Poor                                                       | Pre-2024 data only (train platforms) |
 | Waterloo             | Poor                                                       | No                                   |
 | Sydenham             | Poor                                                       | No                                   |
-| Bankstown line       | Bankstown has a map, not yet reviewed                      | No                                   |
+| Bankstown line       | Bankstown has a map, not yet reviewed. Opened 30 Oct 2026  | No                                   |
 
 "Good" means the map is a station guide that shows the platforms, doors, escalators and lifts, like Bella Vista. "Poor" means it's a "Local area and station guide", which shows the streets around the station and gives little detail about the platforms. For the City-section stations, TfNSW only publishes the local-area style.
 
@@ -112,8 +112,9 @@ Each metro platform screen door has an official number, but TfNSW and Sydney Met
 So door numbers come from surveying the platforms in person. What we know so far:
 
 - **Victoria Cross:** doors are numbered 4 to 21 on each platform, which is 18 doors, one per train door. The numbering is mirrored: each door is directly across from the door with the same number on the other platform. Door 4 is at the Sydenham (south) end on both platforms (survey, 12 October 2026).
-- **Gadigal:** door 4 is at the Sydenham end too (survey, 12 October 2026).
-- **Other stations:** not checked yet. Since November 2026 the survey form assumes doors 4 to 21 with door 4 at the Sydenham end everywhere, and no longer asks. If a station turns out different, volunteers can say so in the notes.
+- **Gadigal:** door 4 is at the Sydenham end too (survey, 12 October 2026). Since the Bankstown line opened, that's the Bankstown end: trains run through Sydenham to Bankstown.
+- **Other stations:** not checked yet. Since November 2026 the survey form assumes doors 4 to 21 with door 4 at the south (Bankstown) end everywhere, and no longer asks. If a station turns out different, volunteers can say so in the notes.
+- **Bankstown line:** unknown. These are converted Sydney Trains stations, so their platforms may be numbered differently. The survey shows a note on these stations asking people to say so.
 
 ## Why metro only
 

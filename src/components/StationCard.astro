@@ -79,6 +79,8 @@ import DoorSurvey from './DoorSurvey.astro';
     color: var(--chip-fg, var(--line-nw));
     margin-top: 10px !important;
   }
+  /* Both say "help map me!" (see statusInfo), so they look the same. */
+  .card[data-status='ready'],
   .card[data-status='mapping'] {
     --chip-bg: #fff4d6;
     --chip-fg: #8a5a00;
@@ -139,9 +141,6 @@ import DoorSurvey from './DoorSurvey.astro';
     background: var(--line-city);
     animation: blink 1.6s infinite;
   }
-  .card[data-status='ready'] .car i {
-    animation-name: shimmer;
-  }
   .car:nth-child(2) i {
     animation-delay: 0.1s;
   }
@@ -160,11 +159,6 @@ import DoorSurvey from './DoorSurvey.astro';
   @keyframes blink {
     50% {
       opacity: 0.25;
-    }
-  }
-  @keyframes shimmer {
-    50% {
-      background: var(--accent);
     }
   }
 

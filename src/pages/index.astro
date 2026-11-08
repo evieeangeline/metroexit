@@ -46,10 +46,10 @@ import { LIVE_TRAINS } from '../config';
             <span class="key key-nw"></span>North West
           </li>
           <li>
-            <span class="key key-city"></span>City &amp; Southwest
+            <span class="key key-city"></span>City
           </li>
           <li>
-            <span class="key key-bankstown"></span>Bankstown line, coming soon
+            <span class="key key-bankstown"></span>Bankstown line
           </li>
           <li>
             <span class="key key-rail"></span>Sydney Trains
@@ -148,13 +148,12 @@ import { LIVE_TRAINS } from '../config';
   .key-city {
     background: var(--line-city);
   }
+  .key-bankstown {
+    background: var(--line-bankstown);
+  }
   .key-rail {
     background: var(--rail);
     height: 3px;
-  }
-  .key-bankstown {
-    height: 5px;
-    background: radial-gradient(circle, var(--line-city) 2.3px, transparent 2.6px) 0 50% / 7px 5px repeat-x;
   }
   .note {
     margin: 20px 0 0;

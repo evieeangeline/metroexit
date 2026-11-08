@@ -51,23 +51,23 @@ export const stations: Station[] = [
   { id: 'waterloo', name: 'Waterloo', lat: -33.8988, lon: 151.2063, line: 'city', status: 'mapping', pos: 'r' },
   { id: 'sydenham', name: 'Sydenham', lat: -33.9147, lon: 151.1675, line: 'city', interchange: true, key: true, keyPos: 'b', status: 'mapping', pos: 'r' },
 
-  // Bankstown line — Marrickville to Bankstown
-  { id: 'marrickville', name: 'Marrickville', lat: -33.9137, lon: 151.1549, line: 'bankstown', status: 'soon', pos: 'rot' },
-  { id: 'dulwich-hill', name: 'Dulwich Hill', lat: -33.9111, lon: 151.1412, line: 'bankstown', status: 'soon', pos: 'rot' },
-  { id: 'hurlstone-park', name: 'Hurlstone Park', lat: -33.91, lon: 151.1286, line: 'bankstown', status: 'soon', pos: 'rot' },
-  { id: 'canterbury', name: 'Canterbury', lat: -33.9123, lon: 151.1186, line: 'bankstown', status: 'soon', pos: 'rot' },
-  { id: 'campsie', name: 'Campsie', lat: -33.9103, lon: 151.1025, line: 'bankstown', status: 'soon', pos: 'rot' },
-  { id: 'belmore', name: 'Belmore', lat: -33.9175, lon: 151.0892, line: 'bankstown', status: 'soon', pos: 'rot' },
-  { id: 'lakemba', name: 'Lakemba', lat: -33.9198, lon: 151.0757, line: 'bankstown', status: 'soon', pos: 'rot' },
-  { id: 'wiley-park', name: 'Wiley Park', lat: -33.9226, lon: 151.0675, line: 'bankstown', status: 'soon', pos: 'rot' },
-  { id: 'punchbowl', name: 'Punchbowl', lat: -33.9256, lon: 151.0538, line: 'bankstown', status: 'soon', pos: 'rot' },
-  { id: 'bankstown', name: 'Bankstown', lat: -33.9177, lon: 151.0347, line: 'bankstown', interchange: true, key: true, keyPos: 'l', status: 'soon', pos: 'l' },
+  // Bankstown line — Marrickville to Bankstown (metro since 30 October 2026)
+  { id: 'marrickville', name: 'Marrickville', lat: -33.9137, lon: 151.1549, line: 'bankstown', status: 'mapping', pos: 'rot' },
+  { id: 'dulwich-hill', name: 'Dulwich Hill', lat: -33.9111, lon: 151.1412, line: 'bankstown', status: 'mapping', pos: 'rot' },
+  { id: 'hurlstone-park', name: 'Hurlstone Park', lat: -33.91, lon: 151.1286, line: 'bankstown', status: 'mapping', pos: 'rot' },
+  { id: 'canterbury', name: 'Canterbury', lat: -33.9123, lon: 151.1186, line: 'bankstown', status: 'mapping', pos: 'rot' },
+  { id: 'campsie', name: 'Campsie', lat: -33.9103, lon: 151.1025, line: 'bankstown', status: 'mapping', pos: 'rot' },
+  { id: 'belmore', name: 'Belmore', lat: -33.9175, lon: 151.0892, line: 'bankstown', status: 'mapping', pos: 'rot' },
+  { id: 'lakemba', name: 'Lakemba', lat: -33.9198, lon: 151.0757, line: 'bankstown', status: 'mapping', pos: 'rot' },
+  { id: 'wiley-park', name: 'Wiley Park', lat: -33.9226, lon: 151.0675, line: 'bankstown', status: 'mapping', pos: 'rot' },
+  { id: 'punchbowl', name: 'Punchbowl', lat: -33.9256, lon: 151.0538, line: 'bankstown', status: 'mapping', pos: 'rot' },
+  { id: 'bankstown', name: 'Bankstown', lat: -33.9177, lon: 151.0347, line: 'bankstown', interchange: true, key: true, keyPos: 'l', status: 'mapping', pos: 'l' },
 ];
 
 export const lineInfo: Record<Line, { name: string; color: string }> = {
   northwest: { name: 'North West', color: 'var(--line-nw)' },
-  city: { name: 'City & Southwest', color: 'var(--line-city)' },
-  bankstown: { name: 'Bankstown line', color: 'var(--line-city)' },
+  city: { name: 'City', color: 'var(--line-city)' },
+  bankstown: { name: 'Bankstown line', color: 'var(--line-bankstown)' },
 };
 
 const helpBlurb = 'We don’t know which doors line up with the exits here yet. Waiting on the platform? You can help.';
