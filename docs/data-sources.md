@@ -111,8 +111,9 @@ Each metro platform screen door has an official number, but TfNSW and Sydney Met
 
 So door numbers come from surveying the platforms in person. What we know so far:
 
-- **Victoria Cross:** doors are numbered 4 to 21 on each platform, which is 18 doors, one per train door. The numbering is mirrored: each door is directly across from the door with the same number on the other platform. Still unknown: which end door 4 is at.
-- **Other stations:** not checked yet. Our working guess is 4 to 21, mirrored, everywhere. Confirm it at each station, and note which end door 4 is at.
+- **Victoria Cross:** doors are numbered 4 to 21 on each platform, which is 18 doors, one per train door. The numbering is mirrored: each door is directly across from the door with the same number on the other platform. Door 4 is at the Sydenham (south) end on both platforms (survey, 12 October 2026).
+- **Gadigal:** door 4 is at the Sydenham end too (survey, 12 October 2026).
+- **Other stations:** not checked yet. Since November 2026 the survey form assumes doors 4 to 21 with door 4 at the Sydenham end everywhere, and no longer asks. If a station turns out different, volunteers can say so in the notes.
 
 ## Why metro only
 

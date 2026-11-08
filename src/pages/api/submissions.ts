@@ -1,4 +1,4 @@
-// Station surveys from /contribute. POST stores one in Redis; GET returns them
+// Station surveys from the station card. POST stores one in Redis; GET returns them
 // all, but only with the ADMIN_TOKEN (see docs/contributions.md).
 import type { APIRoute } from 'astro';
 import { ADMIN_TOKEN } from 'astro:env/server';

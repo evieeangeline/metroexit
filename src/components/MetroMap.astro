@@ -436,6 +436,8 @@ const stationData = Object.fromEntries(
   let pinned: string | null = null;
 
   function show(id: string | null) {
+    // DoorSurvey watches these to know which station's form to show.
+    card.dataset.shown = id ?? '';
     if (!id) {
       empty.hidden = false;
       body.hidden = true;
@@ -450,7 +452,6 @@ const stationData = Object.fromEntries(
     body.querySelector('.card-name')!.textContent = s.name;
     body.querySelector('.card-chip')!.textContent = s.chip;
     body.querySelector('.card-blurb')!.textContent = s.blurb;
-    body.querySelector<HTMLAnchorElement>('.card-help')!.href = `/contribute?station=${id}`;
   }
 
   // Stations can be picked from the map or from the line diagram on phones.
@@ -461,6 +462,7 @@ const stationData = Object.fromEntries(
     for (const el of [...stns, ...strip]) el.classList.toggle('active', el.dataset.id === pinned);
     strip.forEach((el) => el.setAttribute('aria-pressed', String(el.dataset.id === pinned)));
     card.classList.toggle('open', !!pinned);
+    card.dataset.pinned = pinned ?? '';
     show(pinned);
     if (pinned) document.dispatchEvent(new CustomEvent('station-picked', { detail: data[pinned].lineKey }));
   }
@@ -480,6 +482,10 @@ const stationData = Object.fromEntries(
   for (const b of strip) b.addEventListener('click', () => pin(b.dataset.id!));
   card.querySelector('.card-close')?.addEventListener('click', () => pin(null));
   document.addEventListener('keydown', (e) => e.key === 'Escape' && pin(null));
+
+  // Links like /?station=gadigal (and the old /contribute?station=…) open that station.
+  const linked = new URLSearchParams(location.search).get('station');
+  if (linked && data[linked]) pin(linked);
 
   // ── Metro trains ───────────────────────────────────────────────────────
   // Live positions come from /api/metros (TfNSW GTFS-realtime, proxied). If the

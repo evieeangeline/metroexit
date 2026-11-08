@@ -28,7 +28,9 @@ console.log(`Saved ${submissions.length} submissions to data/submissions.json\n`
 const tally = {};
 for (const s of submissions) {
   const t = (tally[s.station] ??= { tallawong: 0, sydenham: 0 });
-  for (const p of s.platforms ?? []) t[p.towards]++;
+  // Door-by-door surveys have one `platform`; the first version of the form had `platforms[].towards`.
+  const sides = s.platform ? (s.platform === 'both' ? ['tallawong', 'sydenham'] : [s.platform]) : [];
+  for (const side of [...sides, ...(s.platforms ?? []).map((p) => p.towards)]) t[side]++;
 }
 for (const [station, t] of Object.entries(tally).sort()) {
   console.log(`${station.padEnd(22)} towards Tallawong: ${t.tallawong}  towards Sydenham: ${t.sydenham}`);

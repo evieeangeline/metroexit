@@ -63,7 +63,7 @@ import { LIVE_TRAINS } from '../config';
           <br />
           An independent project, not affiliated with Transport for NSW.
           <br />
-          On a metro platform? <a href="/contribute">Help map the doors</a>.
+          On a metro platform? Pick your station to help map the doors.
         </p>
       </footer>
     </div>
@@ -174,11 +174,12 @@ import { LIVE_TRAINS } from '../config';
     text-decoration-color: currentColor;
   }
 
-  /* Desktop: text panel down the left, map fills the rest edge to edge. */
+  /* Desktop: text panel down the left, map fills the rest edge to edge. When the
+     door survey makes the left column taller than the screen, the page scrolls
+     and the map stays put. */
   @media (min-width: 900px) {
     .page {
-      height: 100svh;
-      min-height: 640px;
+      min-height: max(100svh, 640px);
       grid-template-columns: minmax(360px, 34%) 1fr;
       grid-template-rows: auto 1fr auto;
       grid-template-areas:
@@ -190,7 +191,7 @@ import { LIVE_TRAINS } from '../config';
       padding: clamp(32px, 6vh, 64px) 0 0 clamp(32px, 4.5vw, 72px);
     }
     .card-area {
-      padding: 0 0 0 clamp(32px, 4.5vw, 72px);
+      padding: 16px 0 32px clamp(32px, 4.5vw, 72px);
       align-items: center;
       justify-content: flex-start;
     }
@@ -198,6 +199,10 @@ import { LIVE_TRAINS } from '../config';
       padding: 0 0 clamp(28px, 5vh, 48px) clamp(32px, 4.5vw, 72px);
     }
     .map-area {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      height: max(100svh, 640px);
       padding: 24px clamp(16px, 3vw, 48px) 24px 0;
     }
   }

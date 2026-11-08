@@ -1,48 +1,47 @@
-// What a volunteer standing on a platform reports through /contribute, and the
+// What a volunteer on a platform reports through the station card survey, and the
 // server-side check that /api/submissions runs before storing it.
 import { stations } from '../data/metro';
 
-export const DIRECTIONS = { tallawong: 'Tallawong', sydenham: 'Sydenham' } as const;
+/**
+ * Every metro platform has doors 4 to 21, with door 4 at the Sydenham end on
+ * both platforms (confirmed at Victoria Cross and Gadigal; see docs/data-sources.md).
+ */
+export const FIRST_DOOR = 4;
+export const LAST_DOOR = 21;
+export const DOOR_NUMBERS = Array.from({ length: LAST_DOOR - FIRST_DOOR + 1 }, (_, i) => FIRST_DOOR + i);
 
-export const CONNECTION_TYPES = {
-  escalators: 'Escalators',
-  'escalators-stairs': 'Escalators + stairs',
-  stairs: 'Stairs only',
-  lift: 'Lift',
+/** Which platform a survey covers. "both" means the two sides match door for door. */
+export const PLATFORMS = {
+  tallawong: 'Towards Tallawong',
+  sydenham: 'Towards Sydenham',
+  both: 'Both platforms',
 } as const;
 
-export type Direction = keyof typeof DIRECTIONS;
-export type ConnectionType = keyof typeof CONNECTION_TYPES;
+/** Things a volunteer can mark next to a door. */
+export const FEATURES = {
+  escalators: 'Escalators',
+  stairs: 'Stairs',
+  lift: 'Lift',
+  accessible: 'Accessible door',
+  seats: 'Seats',
+  help: 'Help point',
+} as const;
 
-/** One end door of a platform, and which end of an arriving train it lines up with. */
-export interface EndDoor {
-  door?: number;
-  end?: 'front' | 'back';
-}
+export type Platform = keyof typeof PLATFORMS;
+export type Feature = keyof typeof FEATURES;
 
-/** A platform, named by where its trains are heading. */
-export interface PlatformDoors {
-  towards: Direction;
-  lowest: EndDoor;
-  highest: EndDoor;
-}
-
-/** A way off the platform: an escalator bank, stairs or a lift. */
-export interface Connection {
-  /** Which platform it was logged on, when the volunteer could see both. */
-  towards: Direction | 'both';
-  type: ConnectionType;
-  /** Nearest platform door. */
+export interface DoorReport {
   door: number;
-  /** Escalators that only run one way, at the time of the survey. */
-  direction?: 'up' | 'down' | 'both';
-  leadsTo: string;
+  features: Feature[];
+  /** Where the escalators or lift go, or anything else worth knowing. */
+  note: string;
 }
 
 export interface Survey {
   station: string;
-  platforms: PlatformDoors[];
-  connections: Connection[];
+  platform: Platform;
+  /** Only doors with something marked, in door order. */
+  doors: DoorReport[];
   notes: string;
   name: string;
 }
@@ -50,20 +49,10 @@ export interface Survey {
 /** Stations people can survey: everything open on the metro now. */
 export const surveyStations = stations.filter((s) => s.line !== 'bankstown');
 
-const MAX_DOOR = 30;
 const str = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
-const door = (v: unknown) =>
-  Number.isInteger(v) && (v as number) >= 1 && (v as number) <= MAX_DOOR ? (v as number) : undefined;
 const oneOf = <T extends string>(v: unknown, options: readonly T[]): T | undefined =>
   options.includes(v as T) ? (v as T) : undefined;
-const directions = Object.keys(DIRECTIONS) as Direction[];
-
-function endDoor(raw: unknown): EndDoor {
-  const r = (raw ?? {}) as Record<string, unknown>;
-  const d = door(r.door);
-  const end = oneOf(r.end, ['front', 'back'] as const);
-  return { ...(d !== undefined && { door: d }), ...(end && { end }) };
-}
+const featureKeys = Object.keys(FEATURES) as Feature[];
 
 /** Returns a clean Survey, or an error message for the volunteer. */
 export function parseSurvey(raw: unknown): Survey | string {
@@ -72,34 +61,24 @@ export function parseSurvey(raw: unknown): Survey | string {
 
   const station = str(r.station, 40);
   if (!surveyStations.some((s) => s.id === station)) return 'Pick a station.';
+  const platform = oneOf(r.platform, Object.keys(PLATFORMS) as Platform[]);
+  if (!platform) return 'Pick which platform you’re on.';
 
-  const platforms: PlatformDoors[] = [];
-  for (const p of (Array.isArray(r.platforms) ? r.platforms : []) as Record<string, unknown>[]) {
-    const towards = oneOf(p?.towards, directions);
-    if (!towards || platforms.some((q) => q.towards === towards)) continue;
-    platforms.push({ towards, lowest: endDoor(p.lowest), highest: endDoor(p.highest) });
+  const byDoor = new Map<number, DoorReport>();
+  for (const d of (Array.isArray(r.doors) ? r.doors.slice(0, 40) : []) as Record<string, unknown>[]) {
+    const door = d?.door as number;
+    if (!DOOR_NUMBERS.includes(door) || byDoor.has(door)) continue;
+    const features = featureKeys.filter((f) => Array.isArray(d.features) && d.features.includes(f));
+    const note = str(d.note, 200);
+    if (features.length || note) byDoor.set(door, { door, features, note });
   }
-  if (!platforms.length) return 'Pick which way the trains are heading.';
-  const only = platforms.length === 1 ? platforms[0].towards : null;
+  if (!byDoor.size) return 'Tap a door and mark what’s next to it.';
 
-  // Rows without a type or door are half-filled extras; skip them.
-  const connections: Connection[] = [];
-  for (const c of (Array.isArray(r.connections) ? r.connections.slice(0, 24) : []) as Record<string, unknown>[]) {
-    const type = oneOf(c?.type, Object.keys(CONNECTION_TYPES) as ConnectionType[]);
-    const d = door(c?.door);
-    if (!type || d === undefined) continue;
-    connections.push({
-      towards: only ?? oneOf(c.towards, [...directions, 'both'] as const) ?? 'both',
-      type,
-      door: d,
-      ...(type !== 'lift' && { direction: oneOf(c.direction, ['up', 'down', 'both'] as const) ?? 'both' }),
-      leadsTo: str(c.leadsTo, 200),
-    });
-  }
-
-  if (!platforms.some((p) => p.lowest.door || p.highest.door) && !connections.length) {
-    return 'Add at least one door number.';
-  }
-
-  return { station, platforms, connections, notes: str(r.notes, 2000), name: str(r.name, 80) };
+  return {
+    station,
+    platform,
+    doors: [...byDoor.values()].sort((a, b) => a.door - b.door),
+    notes: str(r.notes, 2000),
+    name: str(r.name, 80),
+  };
 }

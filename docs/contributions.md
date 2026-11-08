@@ -1,35 +1,56 @@
 # Station surveys
 
-Status as of 10 October 2026: **built, not yet connected to storage on Vercel.** Follow [Setting it up on Vercel](#setting-it-up-on-vercel) once.
+Status as of 9 November 2026: **working, storing to Upstash Redis.** The survey now lives in the station card on the home page; it replaced the separate `/contribute` form on this date.
 
-Platform door numbers aren't published anywhere (see [data-sources.md](data-sources.md#4-platform-door-numbers)), so volunteers collect them in person. Anyone standing on a metro platform can open `/contribute` on their phone and record:
+Platform door numbers aren't published anywhere (see [data-sources.md](data-sources.md#4-platform-door-numbers)), so volunteers map platforms in person. The survey assumes every platform has doors 4 to 21, with door 4 at the Sydenham end.
 
-- the station, and which platforms they can see (towards Tallawong, towards Sydenham, or both, e.g. at Chatswood)
-- for each of those platforms, the lowest and highest door numbers and whether each is at the front or back of the train. Picking the end for one door fills in the opposite end for the other. Everything is optional, so someone who can only reach one end can log just that door.
-- optionally, any escalators, stairs and lifts they're next to, with the nearest door and where each one leads
-- notes, and their name if they want credit
+The form is inside the station card on the home page, so there's nothing to open or navigate to. Pick a station on the map (on a phone, the card slides up), then:
 
-A submission needs a station, at least one platform and at least one door number.
+1. Pick the platform: to Tallawong, to Sydenham, or both sides, if the two sides have the same things at the same doors.
+2. Tap a door on the train (six carriages of three doors), then tap what's next to it: escalators, stairs, lift, accessible door, seats or help point. Marked doors show their icons.
+3. Optionally type anything else in one line, and tap Send.
 
-Each station card on the map links to the form with that station already selected (`/contribute?station=<id>`).
+A submission needs a platform and at least one door with something marked. After sending, they can map the other side of the same station in one tap. Bankstown line stations ("coming soon") don't show the survey. On desktop, the form only shows for the station that's been clicked, not one that's just hovered.
 
-Underground signal is patchy, so the form saves answers on the phone as people type. If sending fails, they can tap Send again later and nothing is lost.
+### Submission shape
+
+```json
+{
+  "id": "…",
+  "receivedAt": "2026-11-09T…Z",
+  "station": "victoria-cross",
+  "platform": "both",
+  "doors": [{ "door": 4, "features": ["lift", "accessible"], "note": "" }],
+  "notes": "escalators at 10 go to Miller St",
+  "name": ""
+}
+```
+
+Submissions from before 9 November 2026 have the first form's shape instead: `platforms` (lowest and highest door, and which end each was at) and `connections` (way off, nearest door, where it leads). `npm run export-submissions` counts both.
+
+`note` and `name` are always empty from the card; the API still accepts them, and older submissions have them.
+
+Links like `/?station=gadigal` open the map with that station's card and survey showing. The old `/contribute?station=<id>` links redirect there.
+
+Underground signal is patchy, so answers are kept on the phone (`localStorage`, one draft per station) as people tap. If sending fails, they can tap Send again later and nothing is lost.
 
 ## How it's built
 
 ```
-/contribute (static page) ──POST──► /api/submissions (Vercel Function) ──► Upstash Redis list
+station card (DoorSurvey) ──POST──► /api/submissions (Vercel Function) ──► Upstash Redis list
                                          checks the answers, rate limits
 npm run export-submissions ──GET + ADMIN_TOKEN──► /api/submissions ──► data/submissions.json
 ```
 
-| File                             | Role                                                                                         |
-| -------------------------------- | -------------------------------------------------------------------------------------------- |
-| `src/pages/contribute.astro`     | The form. Draft saved in `localStorage`. Prerendered like the home page.                     |
-| `src/lib/survey.ts`              | The survey's shape and the server-side check (`parseSurvey`): allowed values, length limits. |
-| `src/pages/api/submissions.ts`   | POST stores a survey. GET returns them all, but only with `ADMIN_TOKEN`.                     |
-| `src/lib/redis.ts`               | A tiny Upstash REST client using `fetch`, so there's no extra dependency.                    |
-| `scripts/export-submissions.mjs` | Downloads everything to `data/submissions.json` (gitignored) and prints a count per station. |
+| File                              | Role                                                                                                            |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `src/components/DoorSurvey.astro` | The form inside the station card. Watches `data-pinned` / `data-shown` on `.card`, which `MetroMap.astro` sets. |
+| `src/lib/icons.ts`                | The feature icons.                                                                                              |
+| `src/pages/contribute.astro`      | Redirects old links to `/?station=…`.                                                                           |
+| `src/lib/survey.ts`               | The survey's shape and the server-side check (`parseSurvey`): allowed values, length limits.                    |
+| `src/pages/api/submissions.ts`    | POST stores a survey. GET returns them all, but only with `ADMIN_TOKEN`.                                        |
+| `src/lib/redis.ts`                | A tiny Upstash REST client using `fetch`, so there's no extra dependency.                                       |
+| `scripts/export-submissions.mjs`  | Downloads everything to `data/submissions.json` (gitignored) and prints a count per station.                    |
 
 **Why Redis?** A Vercel Function can't save files: each request may run on a fresh machine and its disk is thrown away. Submissions have to go to a hosted database, and Upstash Redis is the simplest option Vercel offers. Its free tier is far more than this needs.
 
@@ -40,7 +61,7 @@ npm run export-submissions ──GET + ADMIN_TOKEN──► /api/submissions ─
 1. In the Vercel dashboard, open the project and go to **Storage → Create Database → Upstash for Redis** (in the Marketplace). Pick the free plan and a Sydney region if one is offered, and connect it to this project. This adds `KV_REST_API_URL` and `KV_REST_API_TOKEN` to the project's environment variables.
 2. Make an admin password: run `openssl rand -hex 24`. Add it as `ADMIN_TOKEN` under **Settings → Environment Variables**.
 3. Redeploy so the function picks up the new variables.
-4. Test it: send a survey from `https://<your-site>/contribute`, then run the export below.
+4. Test it: pick a station on `https://<your-site>/` and send a survey, then run the export below.
 
 Without the Redis variables, the live site tells volunteers "Submissions are not set up yet", and `npm run dev` prints each submission to the terminal instead of storing it.
 

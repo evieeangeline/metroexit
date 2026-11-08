@@ -1,8 +1,9 @@
 ---
 // Filled in by the script in MetroMap.astro when a station is hovered or picked.
+import DoorSurvey from './DoorSurvey.astro';
 ---
 
-<aside class="card" aria-live="polite">
+<aside class="card">
   <div class="card-empty">
     <p class="card-kicker">where are you getting off?</p>
     <p class="card-hint">Pick a station on the map to see where it’s at.</p>
@@ -11,8 +12,10 @@
     <button class="card-close" type="button" aria-label="Close">
       ×
     </button>
-    <p class="card-line"></p>
-    <h2 class="card-name"></h2>
+    <div aria-live="polite">
+      <p class="card-line"></p>
+      <h2 class="card-name"></h2>
+    </div>
     <div class="carriages" aria-hidden="true">
       {Array.from({ length: 6 }, () => (
         <span class="car">
@@ -24,9 +27,8 @@
     </div>
     <p class="card-chip"></p>
     <p class="card-blurb"></p>
-    <a class="card-help" href="/contribute">
-      On this platform? Help map it →
-    </a>
+    <p class="card-cta">Click the station to help map it.</p>
+    <DoorSurvey />
   </div>
 </aside>
 
@@ -92,17 +94,21 @@
     color: #3f4b4e;
   }
 
-  .card-help {
-    display: inline-block;
-    margin-top: 10px;
+  .card-cta {
+    display: none;
+    margin-top: 8px !important;
     font-size: 13px;
     font-weight: 700;
-    color: var(--ink);
-    text-decoration-color: var(--accent);
-    text-decoration-thickness: 3px;
-    text-underline-offset: 3px;
   }
-  .card[data-status='soon'] .card-help {
+  .card.can-survey .card-cta {
+    display: block;
+  }
+  /* While the survey is open, its own train replaces the drawing and the blurb. */
+  .card.surveying {
+    transform: none;
+  }
+  .card.surveying .carriages,
+  .card.surveying .card-blurb {
     display: none;
   }
 
@@ -193,6 +199,9 @@
       bottom: calc(12px + env(safe-area-inset-bottom));
       width: auto;
       max-width: none;
+      max-height: calc(100svh - 24px - env(safe-area-inset-bottom));
+      overflow-y: auto;
+      overscroll-behavior: contain;
       z-index: 10;
       transform: translateY(calc(100% + 40px));
       visibility: hidden;
